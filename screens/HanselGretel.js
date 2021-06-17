@@ -1,45 +1,11 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { Text, View, StyleSheet, Dimensions, Button } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
 import Ripple from 'react-native-material-ripple';
-import useCurLocation from '../hooks/useCurLocation';
 import * as Location from 'expo-location';
 import AppContext from '../context/AppContext'
 import SaveModal from '../component/SaveModal';
+import Map from '../component/Map'
 
-function Map({ location }) {
-    const { curLoc } = useCurLocation()
-
-    let route = null;
-    if (curLoc) {
-        route = {
-            latitude: curLoc?.latitude,
-            longitude: curLoc?.longitude,
-            latitudeDelta: 0.0022,
-            longitudeDelta: 0.0022,
-        }
-    }
-    return (
-        <View style={styles.mapContainer}>
-            <MapView
-                style={styles.map}
-                region={route}
-            >
-
-                {location && location.map((loc, idx) => {
-                    console.log(idx)
-                    return <Marker
-                        key={idx}
-                        coordinate={{ latitude: loc.latitude, longitude: loc.longitude }}
-                    />
-                })}
-
-            </MapView>
-
-        </View>
-    )
-
-}
 
 function MapControls({ setLocation, location }) {
     const [pressed, setPressed] = useState(false)
@@ -53,19 +19,14 @@ function MapControls({ setLocation, location }) {
         setPressed(prevState => !prevState)
     }
 
-    
-
-
     useEffect(() => {
         if (pressed) {
             setStopwatch(setInterval(() => {
                 incrementStopwatch()
             }, 10));
             setWatcher(Location.watchPositionAsync({ accuracy: Location.Accuracy.High, distanceInterval: 1, timeInterval: 1000, }, (loc) => {
-                console.log('hello')
                 setLocation(prevLoc => {
-                    console.log('good morning sir')
-                    return [...prevLoc, loc.coords]
+                    return [...prevLoc, {...loc.coords, id: prevLoc.length + 1}]
                 })
             }))
         }
@@ -144,13 +105,6 @@ const styles = StyleSheet.create({
         backgroundColor: '#00A3D3',
         alignItems: 'center',
         justifyContent: 'center',
-    },
-    mapContainer: {
-        flex: 4
-    },
-    map: {
-        width: Dimensions.get('window').width,
-        height: '100%',
     },
     controlContainer: {
         flex: 1,

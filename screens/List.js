@@ -16,9 +16,6 @@ export default function List() {
                 setPaths(retrievedPaths.map((path) => {
                     return { name: path[0], path: JSON.parse(path[1]) }
                 }))
-                // console.log(retrievedPaths.map((path) => {
-                //     return {name: path[0], path: JSON.parse(path[1])[0]}
-                // }))
             })
             .catch((err) => {
                 console.log(err)
@@ -29,7 +26,7 @@ export default function List() {
     return (
         <SafeAreaView style={styles.container}>
             {
-                paths ? <FlatList data={paths} renderItem={ListItem} keyExtractor={item => item.name} />
+                paths ? <FlatList data={paths} renderItem={({item, index, separators}) => <ListItem item={item} />} keyExtractor={item => item.name} />
                     : <></>
             }
         </SafeAreaView>

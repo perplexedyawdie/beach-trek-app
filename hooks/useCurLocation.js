@@ -8,7 +8,6 @@ export default function useCurLocation() {
     useEffect(() => {
         Location.getCurrentPositionAsync({}).then((loc) => {
             setCurLoc(loc.coords)
-            // console.log(loc)
         })
     }, []);
 
