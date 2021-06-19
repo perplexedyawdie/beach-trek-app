@@ -5,6 +5,7 @@ import * as Location from 'expo-location';
 import AppContext from '../context/AppContext'
 import SaveModal from '../component/SaveModal';
 import Map from '../component/Map'
+import useFormatTime from '../hooks/useFormatTime';
 
 
 function MapControls({ setLocation, location }) {
@@ -13,8 +14,8 @@ function MapControls({ setLocation, location }) {
     const [end, setEnd] = useState(0)
     const [stopwatch, setStopwatch] = useState(null)
     const [watcher, setWatcher] = useState(null)
+    const [time, setTime] = useState(null)
     const { trekData } = useContext(AppContext)
-
     function handleControlButtonPress() {
         setPressed(prevState => !prevState)
     }
@@ -23,7 +24,7 @@ function MapControls({ setLocation, location }) {
         if (pressed) {
             setStopwatch(setInterval(() => {
                 incrementStopwatch()
-            }, 10));
+            }, 1000));
             setWatcher(Location.watchPositionAsync({ accuracy: Location.Accuracy.High, distanceInterval: 1, timeInterval: 1000, }, (loc) => {
                 setLocation(prevLoc => {
                     return [...prevLoc, {...loc.coords, id: prevLoc.length + 1}]
@@ -34,6 +35,8 @@ function MapControls({ setLocation, location }) {
         //Stop the tracker
         if (pressed === false && stopwatch && watcher) {
             (async () => await watcher.remove());
+            //Add object with time data and distance.
+            //Calculate distance between nodes with geolib
             trekData.setTrek(location)
             setLocation([])
             clearInterval(stopwatch)
@@ -43,32 +46,21 @@ function MapControls({ setLocation, location }) {
         }
     }, [pressed])
 
+    useEffect(() => {
+        setTime(useFormatTime(start))
+    }, [start])
+
     function incrementStopwatch() {
         setStart(prevState => prevState + 1);
     }
 
-    function formatTime(time) {
-
-        if (time) {
-            return {
-                hrs: Math.floor(time / 3600) >= 0 ? (Math.floor(time / 3600) < 10 ? `0${Math.floor(time / 3600)}` : Math.floor(time / 3600)) : '00',
-                mins: Math.floor(time / 60) > 0 && Math.floor(time % 60) <= 59 ? ((Math.floor(time / 60) % 60) < 10 ? `0${Math.floor(time / 60) % 60}` : Math.floor(time / 60) % 60) : '00',
-                secs: Math.floor(time % 60) <= 59 ? (Math.floor(time % 60) < 10 ? `0${Math.floor(time % 60)}` : Math.floor(time % 60)) : '00'
-            }
-        }
-        return {
-            hrs: '00',
-            mins: '00',
-            secs: '00'
-        };
-    }
 
 
 
     return (
         <View style={styles.controlContainer}>
             <View style={styles.controlTextView}>
-                <Text style={styles.timeText}>Time: {formatTime(start)?.hrs}:{formatTime(start)?.mins}:{formatTime(start)?.secs}</Text>
+                <Text style={styles.timeText}>Time: {time?.hrs}:{time?.mins}:{time?.secs}</Text>
                 <Text style={styles.distanceText}>Distance: {end}</Text>
                 {/* <Text>{location ? `lat: ${location.latitude} lng: ${location.longitude}` : 'loading...'}</Text> */}
             </View>
